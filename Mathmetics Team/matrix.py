@@ -75,7 +75,17 @@ class Matrix():
 
         returns boolean : True- diagonalizable . else- False
         '''
-        return (np.array_equal(self.charPoly,self.minPoly))
+
+        #print(self.minPoly[:,0])
+        #print(self.charPoly[:,0])
+        print(numpy.array_equal(numpy.sort(self.minPoly[:,0]),numpy.sort(self.charPoly[:,0])))
+        #print(self.minPoly[:,1])
+        #a=np.ones_like(self.minPoly[:,1])
+
+        #print(a)
+        print(np.array_equal(self.minPoly[:,1],np.ones_like(self.minPoly[:,1])))
+        is_diag= (numpy.array_equal(numpy.sort(self.minPoly[:,0]),numpy.sort(self.charPoly[:,0]))) and (np.array_equal(self.minPoly[:,1],np.ones_like(self.minPoly[:,1])))
+        return is_diag
 
     def getEigenvectors(self):
         '''
@@ -128,7 +138,7 @@ if __name__ == '__main__':
     '''
     Can do here some plays
     '''
-    arr = np.array([[1,0,1,2,3],[0,0,1,2,3],[0,0,1,0,3],[0,0,0,1,3],[0,0,0,0,0]])
+    arr =np.array([[1,0,0,0,0],[0,1,0,0,0],[0,0,2,0,1],[0,0,0,1,1],[0,0,0,0,2]])
     print(arr,"\n")
     mat = Matrix(arr)
     print(mat.getCharacteristicPolynomial(),"\n")
