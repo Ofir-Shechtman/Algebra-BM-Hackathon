@@ -58,11 +58,13 @@ class Matrix():
             1.check if A is Diagonalizable if so, P = stack_col(eig_vectors)
             2.find eig vectors muhlalim and jordan chains:
                 2.1 for each eig value a:
-                    2.1.1 find v (eig_vector_muhlal) in ker(A-aI)^k so that,
-                          v not in ker(A-aI)^(k-1),
-                          when k is the pow of (x-a) in the min_poly
-                    2.1.2 find jordan chain for each v ,example jordan chain for v:
-                        [v, (A-aI)v, ((A-aI)^2)v,..., ((A-aI)^k-1)v]
+                    2.1.1 find Base B for ker(A-aI)^k so that,
+                            when k is the pow of (x-a) in the min_poly
+                    2.1.2 for each v in B find jordan chain long as possible:
+                        2.1.2.1 add v to the jordan chain
+                        2.1.2.2 for i=k, if ((A-aI)^i)v !=0 then add ((A-aI)^i)v
+                                to the jordan chain
+                        2.1.2.3 continue check for i-1 while i>0 and ((A-aI)^i)v !=0
                 2.2 P = stack_col(all_jordan chains)
         '''
 
