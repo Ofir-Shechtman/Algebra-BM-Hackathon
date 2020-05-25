@@ -2,6 +2,7 @@ import numpy as np
 import numpy.linalg
 from numpy.linalg import matrix_rank
 
+
 class Matrix():
     def __init__(self, matrix : np.ndarray):
         '''
@@ -119,6 +120,7 @@ class Matrix():
                 jordan_chain.append(result)
             else:
                 break
+        #
         jordan_chain.append(vector)
         jordan_chain.reverse()
         return jordan_chain
