@@ -100,6 +100,7 @@ class Matrix():
             # compute A_pow null_space (no pre made function in numpy)
             # null_space = all eig_vectors of eig_value 0
             tmp, eig_muhlalim = np.linalg.eig(A_pow)
+            #TODO: add check for eig_vectors (can be 1e-200)
             null_space = [vector for i, vector in enumerate(eig_muhlalim) if tmp[i] == 0]
             for vector in null_space:
                 base_list += self.findJordanChain(A, vector, min_poly_pow)
