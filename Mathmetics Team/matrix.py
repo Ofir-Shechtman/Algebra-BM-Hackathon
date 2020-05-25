@@ -68,74 +68,59 @@ class Matrix():
                 2.2 P = stack_col(all_jordan chains)
         '''
 
-        eig_vectors_map = self.getEigenvectors()
-
-        # if matrix is Diagonalizable, no need to find eig vectors muhlalim
-        if self.isDiagonalizableMatrix:
-            P = np.zeros_like(self.matrix)
-            for i, vector in enumerate(eig_vectors_map):
-                P[:, i] = eig_vectors_map[i]
-            return P
+        # # if matrix is Diagonalizable, no need to find eig vectors muhlalim
+        # if self.isDiagonalizableMatrix:
+        #     P = np.zeros_like(self.matrix)
+        #     for i, vector in enumerate(eig_vectors_map):
+        #         P[:, i] = eig_vectors_map[i]
+        #     return P
 
         char_poly = self.getCharacteristicPolynomial()
         min_poly = self.getMinimalPolynomial()
 
         # list to store all the jordan chains
         base_list = []
-
-        for eig_value, eig_vectors in eig_vectors_map.items():
-            # geometric multiplicity = num of eig_vectros
-            r_g = len(eig_vectors)
-            # algebraic multiplicity, need to find from char_poly
-            r_a = -1
+        eig_values = char_poly[:, 0]
+        for eig_value in eig_values:
             # the pow of (x-eig_value*I) in the min_poly
             min_poly_pow = -1
-
-            # finding r_a and min_poly_pow
-            for row in char_poly:
-                if row[0] == eig_value:
-                    r_a = row[1]
-                    break
             for row in min_poly:
                 if row[0] == eig_value:
                     min_poly_pow = row[1]
                     break
-
-            num_of_eig_muhlalim = r_a - r_g
+            if min_poly_pow<0:
+                print("problem in min_poly, ", "(x -", eig_value, "I) power < 0")
+                exit()
             #finding eig muhlalim
-            for _ in range(num_of_eig_muhlalim):
-                # A = (matrix - eig_value*I)
-                A = (self.matrix - (eig_value * np.eye(self.matrix.shape[0])))
-                # A_pow = A^min_poly_pow
-                A_pow = np.linalg.matrix_power(A, min_poly_pow)
+            # A = (matrix - eig_value*I)
+            A = (self.matrix - (eig_value * np.eye(self.matrix.shape[0])))
+            # A_pow = A^min_poly_pow
+            A_pow = np.linalg.matrix_power(A, min_poly_pow)
 
-                # compute A_pow null_space (no pre made function in numpy)
-                # null_space = all eig_vectors of eig_value 0
-                tmp, eig_muhlalim = np.linalg.eig(A_pow)
-                null_space = [vector for i, vector in enumerate(eig_muhlalim) if tmp[i] == 0]
-                for vector in null_space:
-                    if self.checkIfMuhlal(A, vector, min_poly_pow):
-                        self.findJordanChain(A, vector, min_poly_pow, base_list)
+            # compute A_pow null_space (no pre made function in numpy)
+            # null_space = all eig_vectors of eig_value 0
+            tmp, eig_muhlalim = np.linalg.eig(A_pow)
+            null_space = [vector for i, vector in enumerate(eig_muhlalim) if tmp[i] == 0]
+            for vector in null_space:
+                base_list += self.findJordanChain(A, vector, min_poly_pow)
 
         # col_stack all jordan chains
         P = numpy.stack(base_list, axis=1)
         return P
 
-    # check if vector is in ker((matrix - eig_value*I)^(min_poly_pow-1))
-    def checkIfMuhlal(self, A, vector, min_poly_pow):
-        A_pow_tmp = np.linalg.matrix_power(A, min_poly_pow-1)
-        if A_pow_tmp @ vector == 0:
-            return False
-        return True
-
     # find jordan chains and add them to base_list
-    def findJordanChain(self, A, vector, min_poly_pow, base_list):
-        min_poly_pow -= 1
-        base_list.append(vector)
-        for tmp_pow in range(1, min_poly_pow, 1):
+    def findJordanChain(self, A, vector, min_poly_pow):
+        jordan_chain = []
+        for tmp_pow in range(min_poly_pow-1, 0, -1):
             A_pow_tmp = np.linalg.matrix_power(A, tmp_pow)
-            base_list.append(A_pow_tmp @ vector)
-        return True
+            result = A_pow_tmp @ vector
+            if result != 0:
+                jordan_chain.append(result)
+            else:
+                break
+        jordan_chain.append(vector)
+        jordan_chain.reverse()
+        return jordan_chain
 
     def getGeoMul(self):
         '''
