@@ -2,6 +2,7 @@ import functools
 
 import numpy as np
 import numpy.linalg
+import scipy.linalg as la
 import itertools
 
 class Matrix():
@@ -16,6 +17,7 @@ class Matrix():
         self.charPoly = self.getCharacteristicPolynomial() #the characteristic Polynom in our presentation : 2d np.ndarray
         self.minPoly = self.getMinimalPolynomial() #the minimal Polynom in our presentation : 2d np.ndarray
         self.isDiagonal = self.isDiagonalizableMatrix() # boolean is diagonalizable matrix
+        self.eigan_vectors = self.getEigenvectors()#dictionary- eigenvals as keys,eigenvectors of each eigenval as ndarray *columns*
 
     def __call__(self, *args, **kwargs):
         '''
@@ -80,11 +82,10 @@ class Matrix():
         return is_diag
 
     def getEigenvectors(self):
-        '''
+        eigenlist = self.getCharacteristicPolynomial()[:,0]
+        dic = {eig: la.null_space(self.matrix - (eig * np.eye(self.matrix.shape[0]))) for eig in eigenlist}
+        return dic
 
-        :return:
-        '''
-        pass
 
     def getPmejardent(self):
         '''
@@ -130,12 +131,12 @@ if __name__ == '__main__':
     '''
     Can do here some plays
     '''
-    arr =np.array([[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,1,0]])
-    print(arr,"\n")
-    mat = Matrix(arr)
+    t = np.eye(3, k=0)
+    t[0][0] = 2
+    print(t,"\n")
+    mat=Matrix(t)
     print(mat.getCharacteristicPolynomial(),"\n")
-    print(mat.getMinimalPolynomial())
-    print(mat.isDiagonal)
+    print(mat.getEigenvectors())
 
     #
     # print("\n",mat.eig_val)
