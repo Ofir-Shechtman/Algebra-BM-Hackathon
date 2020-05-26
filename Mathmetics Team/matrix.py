@@ -77,11 +77,15 @@ class Matrix():
 
         returns boolean : True- diagonalizable . else- False
         '''
-        #check if alllin factors are included in minP and 1-time only
+        #check if all in factors are included in minP and 1-time only
         is_diag= (numpy.array_equal(numpy.sort(self.minPoly[:,0]),numpy.sort(self.charPoly[:,0]))) and (np.array_equal(self.minPoly[:,1],np.ones_like(self.minPoly[:,1])))
         return is_diag
 
     def getEigenvectors(self):
+        '''
+
+        :return: dict of eigen-value : eigen-vectors. {float, ndarray} ndarray=(mat_size,num_of_eigen_vectors)
+        '''
         eigenlist = self.getCharacteristicPolynomial()[:,0]
         dic = {eig: la.null_space(self.matrix - (eig * np.eye(self.matrix.shape[0]))) for eig in eigenlist}
         return dic
@@ -131,14 +135,19 @@ if __name__ == '__main__':
     '''
     Can do here some plays
     '''
-    t = np.eye(3, k=0)
-    t[0][0] = 2
-    print(t,"\n")
-    mat=Matrix(t)
-    print(mat.getCharacteristicPolynomial(),"\n")
+    # t = np.eye(3, k=0)
+    # t[0][0] = 2
+    # print(t,"\n")
+    # mat=Matrix(t)
+    # print(mat.getCharacteristicPolynomial(),"\n")
+    # print(mat.getEigenvectors())
+    arr = np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 2, 0, 0], [0, 0, 0, 2, 0], [0, 0, 0, 0, 2]])
+    print(arr, "\n")
+    mat = Matrix(arr)
+    print(mat.getCharacteristicPolynomial(), "\n")
+    print(mat.getMinimalPolynomial())
+    print(mat.isDiagonal)
     print(mat.getEigenvectors())
-
-    #
     # print("\n",mat.eig_val)
     # print(np.linalg.eig(arr))
     # #J, P = mat() # will call "__call__"
