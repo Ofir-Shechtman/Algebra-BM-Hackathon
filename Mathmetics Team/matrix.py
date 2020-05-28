@@ -63,36 +63,39 @@ class Matrix():
                             when k is the pow of (x-a) in the min_poly
                     2.1.2 for each v in B find jordan chain long as possible:
                         2.1.2.1 add v to the jordan chain
-                        2.1.2.2 for i=k, if ((A-aI)^i)v !=0 then add ((A-aI)^i)v
+                        2.1.2.2 for i=1, if ((A-aI)^i)v !=0 then add ((A-aI)^i)v
                                 to the jordan chain
-                        2.1.2.3 continue check for i-1 while i>0 and ((A-aI)^i)v !=0
-                2.2 P = stack_col(all_jordan chains)
+                        2.1.2.3 continue check for i+1 while i<k and ((A-aI)^i)v !=0
+                    2.1.3 for each chain check if their is vectors in other chains
+                          that linear dependence in the chains vectors
+                          2.1.3.1 remove the chains that are linear dependence
+                2.2 P = stack_col(all_jordan_chains)
         '''
-
-        # # if matrix is Diagonalizable, no need to find eig vectors muhlalim
-        # if self.isDiagonalizableMatrix:
-        #     P = np.zeros_like(self.matrix)
-        #     for i, vector in enumerate(eig_vectors_map):
-        #         P[:, i] = eig_vectors_map[i]
-        #     return P
 
         char_poly = self.getCharacteristicPolynomial()
         min_poly = self.getMinimalPolynomial()
 
         # list to store all the jordan chains
-        base_list = []
-        eig_values = char_poly[:, 0]
+        eig_values = char_poly[:,0]
+        p_vector_list = []
         for eig_value in eig_values:
+            jordan_chain_list = []
             # the pow of (x-eig_value*I) in the min_poly
             min_poly_pow = -1
+            r_a = -1
             for row in min_poly:
                 if row[0] == eig_value:
                     min_poly_pow = row[1]
                     break
-            if min_poly_pow<0:
-                print("problem in min_poly, ", "(x -", eig_value, "I) power < 0")
+            for row in char_poly:
+                if row[0] == eig_value:
+                    r_a = row[1]
+                    break
+            if min_poly_pow < 0 or r_a <= 0:
+                print("problem in min_poly or char_poly, ", "(x -", eig_value, "I) power < 0")
                 exit()
-            #finding eig muhlalim
+
+            # finding eig muhlalim
             # A = (matrix - eig_value*I)
             A = (self.matrix - (eig_value * np.eye(self.matrix.shape[0])))
             # A_pow = A^min_poly_pow
@@ -101,29 +104,62 @@ class Matrix():
             # compute A_pow null_space (no pre made function in numpy)
             # null_space = all eig_vectors of eig_value 0
             tmp, eig_muhlalim = np.linalg.eig(A_pow)
-            #TODO: add check for eig_vectors (can be 1e-200)
-            null_space = [vector for i, vector in enumerate(eig_muhlalim) if tmp[i] == 0]
+            null_space = [vector for i, vector in enumerate(eig_muhlalim.T)
+                          if tmp[i] < 1e-12 and np.linalg.norm(vector) > 1e-12]
+
+            # find jordan chain long as possible for each vector in null_space
             for vector in null_space:
-                base_list += self.findJordanChain(A, vector, min_poly_pow)
+                jordan_chain_list.append(self.findJordanChain(A, vector, min_poly_pow))
+
+            # sort jordan chains by size
+            jordan_chain_list.sort(key=len, reverse=True)
+            num_of_vectors = r_a
+
+            #check linear dependence between chains
+            for i, chain in enumerate(jordan_chain_list):
+                j = 1
+                while j < len(jordan_chain_list):
+                    if j >= len(jordan_chain_list):
+                        break
+                    next_chain = jordan_chain_list[j]
+                    for vector in next_chain:
+                        # if one of the vectors in the chains is linear
+                        # dependence, remove it
+                        if not self.isLinearIndependence(chain+[vector]):
+                            jordan_chain_list.pop(j)
+                            j -= 1
+                            break
+                    j += 1
+
+                p_vector_list += reversed(chain)
+                num_of_vectors -= len(chain)
+                if num_of_vectors <= 0:
+                    break
 
         # col_stack all jordan chains
-        P = numpy.stack(base_list, axis=1)
+        P = np.stack(p_vector_list, axis=1)
         return P
 
     # find jordan chains and add them to base_list
     def findJordanChain(self, A, vector, min_poly_pow):
-        jordan_chain = []
-        for tmp_pow in range(min_poly_pow-1, 0, -1):
+        jordan_chain = [vector]
+        for tmp_pow in range(1, min_poly_pow, 1):
             A_pow_tmp = np.linalg.matrix_power(A, tmp_pow)
             result = A_pow_tmp @ vector
-            if result != 0:
+            # debug("jordan chain", [["A_pow_tmp",A_pow_tmp],["tmp_pow",tmp_pow],["vector",vector],["result",result]])
+            if result.any() != 0:
                 jordan_chain.append(result)
             else:
                 break
-        #
-        jordan_chain.append(vector)
-        jordan_chain.reverse()
         return jordan_chain
+
+    def isLinearIndependence(self, vector_list):
+        A = np.stack(vector_list, axis=0)
+        rank = np.linalg.matrix_rank(A)
+        if rank == len(vector_list):
+            return True
+        else:
+            return False
 
     def getGeoMul(self):
         '''
