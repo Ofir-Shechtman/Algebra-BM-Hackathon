@@ -17,7 +17,8 @@ class Matrix():
         self.N = None
         self.matrix = matrix #the matrix: 2d np.ndarray
         self.size = matrix.shape[0] # size of axis: int
-        self.eig_val,_ = np.linalg.eig(self.matrix) # eigen values with duplications : np.ndarray
+        #self.eig_val,_ = np.linalg.eig(self.matrix) # eigen values with duplications : np.ndarray
+        self.eig_val=self.getEigenValues() # eigen values with duplications : np.ndarray
         self.charPoly = self.getCharacteristicPolynomial() #the characteristic Polynom in our presentation : 2d np.ndarray
         self.minPoly = self.getMinimalPolynomial() #the minimal Polynom in our presentation : 2d np.ndarray
         self.isDiagonal = self.isDiagonalizableMatrix() # boolean is diagonalizable matrix
@@ -84,13 +85,15 @@ class Matrix():
         #check if all in factors are included in minP and 1-time only
         is_diag= (numpy.array_equal(numpy.sort(self.minPoly[:,0]),numpy.sort(self.charPoly[:,0]))) and (np.array_equal(self.minPoly[:,1],np.ones_like(self.minPoly[:,1])))
         return is_diag
-
+    def getEigenValues(self):
+        eig_val, _ = np.linalg.eig(self.matrix)
+        return(eig_val.round(decimals= 5))
     def getEigenvectors(self):
         '''
         :return: dict of eigen-value : eigen-vectors. {float, ndarray} ndarray=(mat_size,num_of_eigen_vectors)
         '''
-        eigenlist = self.getCharacteristicPolynomial()[:,0]
-        dic = {eig: la.null_space(self.matrix - (eig * np.eye(self.matrix.shape[0]))) for eig in eigenlist}
+        eigenlist = self.charPoly[:,0]
+        dic = {eig: (la.null_space(self.matrix - (eig * np.eye(self.matrix.shape[0])))).round(decimals=5) for eig in eigenlist}
         return dic
 
     def getPmejardent(self):
@@ -336,7 +339,10 @@ if __name__ == '__main__':
     # print(mat.getCharacteristicPolynomial(),"\n")
     # print(mat.getEigenvectors())
     arr = np.array([[-1,-1,0,0],[2,2,0,0],[4,2,2,1],[-2,-1,-1,0]])
+    #eig,_=la.eig(arr)
+
     print(arr, "\n")
+
     mat = Matrix(arr)
     print("char_poly -\n ", mat.getCharacteristicPolynomial(), "\n")
     print("min_poly -\n ", mat.getMinimalPolynomial())
