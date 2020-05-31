@@ -112,11 +112,11 @@ class Matrix():
                 2.2 P = stack_col(all_jordan_chains)
         '''
 
-        char_poly = self.getCharacteristicPolynomial()
-        min_poly = self.getMinimalPolynomial()
+        char_poly = self.charPoly
+        min_poly = self.minPoly
 
         # list to store all the jordan chains
-        eig_values = char_poly[:,0]
+        eig_values = char_poly[:, 0]
         p_vector_list = []
         for eig_value in eig_values:
             jordan_chain_list = []
@@ -139,7 +139,7 @@ class Matrix():
             # A = (matrix - eig_value*I)
             A = (self.matrix - (eig_value * np.eye(self.matrix.shape[0])))
             # A_pow = A^min_poly_pow
-            A_pow = np.linalg.matrix_power(A, min_poly_pow)
+            A_pow = np.linalg.matrix_power(A, int(min_poly_pow))
 
             # compute A_pow null_space (no pre made function in numpy)
             # null_space = all eig_vectors of eig_value 0
@@ -149,7 +149,7 @@ class Matrix():
 
             # find jordan chain long as possible for each vector in null_space
             for vector in null_space:
-                jordan_chain_list.append(self.findJordanChain(A, vector, min_poly_pow))
+                jordan_chain_list.append(self.findJordanChain(A, vector, int(min_poly_pow)))
 
             # sort jordan chains by size
             jordan_chain_list.sort(key=len, reverse=True)
@@ -157,7 +157,7 @@ class Matrix():
 
             #check linear dependence between chains
             for i, chain in enumerate(jordan_chain_list):
-                j = 1
+                j = i+1
                 while j < len(jordan_chain_list):
                     if j >= len(jordan_chain_list):
                         break
@@ -184,7 +184,7 @@ class Matrix():
     def findJordanChain(self, A, vector, min_poly_pow):
         jordan_chain = [vector]
         for tmp_pow in range(1, min_poly_pow, 1):
-            A_pow_tmp = np.linalg.matrix_power(A, tmp_pow)
+            A_pow_tmp = np.linalg.matrix_power(A, int(tmp_pow))
             result = A_pow_tmp @ vector
             # debug("jordan chain", [["A_pow_tmp",A_pow_tmp],["tmp_pow",tmp_pow],["vector",vector],["result",result]])
             if result.any() != 0:
@@ -259,7 +259,7 @@ class Matrix():
             dim_ker_2 = n - matrix_rank(mat_2)
             dim_ker_3 = n - matrix_rank(mat_3)
 
-            for block_size in range(1, row[1] + 1):
+            for block_size in range(1, int(row[1]) + 1):
                 number_of_blocks = 2 * dim_ker_2 - dim_ker_1 - dim_ker_3
 
                 # Updates the arguments for the next iteration
@@ -318,6 +318,7 @@ class Matrix():
         second_diagonal = np.array([[i, i + 1] for i in range(J.shape[0] - 1)])
         nil_matrix = np.zeros_like(J)
         nil_matrix[second_diagonal[:, 0], second_diagonal[:, 1]] = J[second_diagonal[:, 0], second_diagonal[:, 1]]
+        print("P in get SN = \n", P)
         P_inv = np.linalg.inv(P)
         self.S = P.dot(diag_matrix).dot(P_inv)
         self.N = P.dot(nil_matrix).dot(P_inv)
@@ -328,10 +329,36 @@ if __name__ == '__main__':
     '''
     Can do here some plays
     '''
-    numpy_matrix = np.ndarray([1,2,3])
+    # t = np.eye(3, k=0)
+    # t[0][0] = 2
+    # print(t,"\n")
+    # mat=Matrix(t)
+    # print(mat.getCharacteristicPolynomial(),"\n")
+    # print(mat.getEigenvectors())
+    arr = np.array([[1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]])
+    print(arr, "\n")
+    mat = Matrix(arr)
+    print("char_poly -\n ", mat.getCharacteristicPolynomial(), "\n")
+    print("min_poly -\n ", mat.getMinimalPolynomial())
+    print("isDiagonal -\n " , mat.isDiagonal)
+    print("eig_vectors -\n ", mat.getEigenvectors())
+    P = mat.getPmejardent()
+    print("P =\n ", P)
+    J = mat.getJordanForm()
+    print("J =\n ", J)
+    # invP = np.linalg.inv(P)
+    # print("new J = \n", P@mat.matrix@invP)
+    N = mat.getNmatrix()
+    S = mat.getSmatrix()
+    print("S = \n ",S)
+    print("N = \n ",N)
+    print("new A = \n", S+N)
 
-    mat = Matrix(numpy_matrix)
-    J, P = mat() # will call "__call__"
+
+    # print("\n",mat.eig_val)
+    # print(np.linalg.eig(arr))
+    # #J, P = mat() # will call "__call__"
+    # print(arr)
     pass
 
 
