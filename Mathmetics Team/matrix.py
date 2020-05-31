@@ -335,7 +335,7 @@ if __name__ == '__main__':
     # mat=Matrix(t)
     # print(mat.getCharacteristicPolynomial(),"\n")
     # print(mat.getEigenvectors())
-    arr = np.array([[1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]])
+    arr = np.array([[-1,-1,0,0],[2,2,0,0],[4,2,2,1],[-2,-1,-1,0]])
     print(arr, "\n")
     mat = Matrix(arr)
     print("char_poly -\n ", mat.getCharacteristicPolynomial(), "\n")
