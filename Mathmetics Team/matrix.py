@@ -1,6 +1,11 @@
 import numpy as np
 import numpy.linalg
 from numpy.linalg import matrix_rank
+import scipy.linalg as la
+import itertools
+import functools
+
+
 
 class Matrix():
     def __init__(self, matrix : np.ndarray):
@@ -10,6 +15,14 @@ class Matrix():
         self.matrix = matrix
         self.S = None
         self.N = None
+        self.matrix = matrix #the matrix: 2d np.ndarray
+        self.size = matrix.shape[0] # size of axis: int
+        #self.eig_val,_ = np.linalg.eig(self.matrix) # eigen values with duplications : np.ndarray
+        self.eig_val=self.getEigenValues() # eigen values with duplications : np.ndarray
+        self.charPoly = self.getCharacteristicPolynomial() #the characteristic Polynom in our presentation : 2d np.ndarray
+        self.minPoly = self.getMinimalPolynomial() #the minimal Polynom in our presentation : 2d np.ndarray
+        self.isDiagonal = self.isDiagonalizableMatrix() # boolean is diagonalizable matrix
+        self.eigan_vectors = self.getEigenvectors()#dictionary- eigenvals as keys,eigenvectors of each eigenval as ndarray *columns*
 
     def __call__(self, *args, **kwargs):
         '''
@@ -26,88 +39,170 @@ class Matrix():
 
     def getCharacteristicPolynomial(self):
         '''
-
         :return:
         '''
-        pass
+        unique_elements, counts_elements = np.unique(self.eig_val, return_counts=True)
+        charPoly = np.array([unique_elements,counts_elements])
+        return charPoly.transpose()
+
 
     def getMinimalPolynomial(self):
         '''
-
         :return:
         '''
-        pass
+        charP=self.charPoly
+        linear_factors = [(self.matrix - charP[i][0] * np.identity(self.size),charP[i][0]) for i in
+                          range(charP.shape[0])]  # list of all (A-lambda*I) factors in CharP
+        #print(linear_factors)
+        # loop from minimum num of linear factors in MinP to Size of matrix
+        for cur_num_of_lin_factors in range (self.charPoly.shape[0],self.size+1):
+            # list of combinations for cur_num_of_lin_factors componnents in poly
+            poly_lin_factors=itertools.combinations_with_replacement(linear_factors,cur_num_of_lin_factors)
+            poly_lin_factors=list(poly_lin_factors)
+            poly_results=[]
+            #calculate results of all polynoms (while removing the tuples with the eigen_values) and append into list
+            for cur_lin_factors_tups in poly_lin_factors:
+                cur_list=[cur_lin_factor[0] for cur_lin_factor in cur_lin_factors_tups]
+                poly_results.append(functools.reduce((lambda x, y: np.dot(x,y)),cur_list))
+
+            zero_index=[i for i in range(len(poly_results)) if numpy.count_nonzero(poly_results[i])==0]
+            # if there is a solution zero, get the result
+            if len(zero_index)>0:
+                min_lin_factors=[lin_factor[1] for lin_factor in poly_lin_factors[zero_index[0]]]
+                #np_arr=numpy.array(min_lin_factors)
+                unique_elements, counts_elements = np.unique(min_lin_factors, return_counts=True)
+                minPoly = np.array([unique_elements, counts_elements])
+                return minPoly.transpose()
+
+
+        return np.array() # error
+
 
     def isDiagonalizableMatrix(self):
         '''
-
-        :return:
+        returns boolean : True- diagonalizable . else- False
         '''
-        pass
-
+        #check if all in factors are included in minP and 1-time only
+        is_diag= (numpy.array_equal(numpy.sort(self.minPoly[:,0]),numpy.sort(self.charPoly[:,0]))) and (np.array_equal(self.minPoly[:,1],np.ones_like(self.minPoly[:,1])))
+        return is_diag
+    def getEigenValues(self):
+        eig_val, _ = np.linalg.eig(self.matrix)
+        return(eig_val.round(decimals= 5))
     def getEigenvectors(self):
         '''
-
-        :return:
+        :return: dict of eigen-value : eigen-vectors. {float, ndarray} ndarray=(mat_size,num_of_eigen_vectors)
         '''
-        pass
+        eigenlist = self.charPoly[:,0]
+        dic = {eig: (la.null_space(self.matrix - (eig * np.eye(self.matrix.shape[0])))).round(decimals=5) for eig in eigenlist}
+        return dic
 
     def getPmejardent(self):
-        # what getEigenvectors returs?
-        eag_vectors_map = self.getEigenvectors()
-        eag_muhlalim_map = []
-        P = np.zeros_like(self.matrix)
-        if self.isDiagonalizableMatrix:
-            for i, vector in enumerate(eag_vectors_map):
-                P[:, i] = eag_vectors_map[i]
-            return P
+        '''
+        Algorith:
+            1.check if A is Diagonalizable if so, P = stack_col(eig_vectors)
+            2.find eig vectors muhlalim and jordan chains:
+                2.1 for each eig value a:
+                    2.1.1 find Base B for ker(A-aI)^k so that,
+                            when k is the pow of (x-a) in the min_poly
+                    2.1.2 for each v in B find jordan chain long as possible:
+                        2.1.2.1 add v to the jordan chain
+                        2.1.2.2 for i=1, if ((A-aI)^i)v !=0 then add ((A-aI)^i)v
+                                to the jordan chain
+                        2.1.2.3 continue check for i+1 while i<k and ((A-aI)^i)v !=0
+                    2.1.3 for each chain check if their is vectors in other chains
+                          that linear dependence in the chains vectors
+                          2.1.3.1 remove the chains that are linear dependence
+                2.2 P = stack_col(all_jordan_chains)
+        '''
 
-        char_poly = self.getCharacteristicPolynomial()
-        min_poly = self.getMinimalPolynomial()
-        base_list = []
-        for eag_value, eag_vectors in eag_vectors_map.items():
-            r_g = len(eag_vectors)
-            r_a = -1
+        char_poly = self.charPoly
+        min_poly = self.minPoly
+
+        # list to store all the jordan chains
+        eig_values = char_poly[:, 0]
+        p_vector_list = []
+        for eig_value in eig_values:
+            jordan_chain_list = []
+            # the pow of (x-eig_value*I) in the min_poly
             min_poly_pow = -1
-            for line in char_poly:
-                if line[0] == eag_value:
-                    r_a = line[1]
+            r_a = -1
+            for row in min_poly:
+                if row[0] == eig_value:
+                    min_poly_pow = row[1]
                     break
-            for line in min_poly:
-                if line[0] == eag_value:
-                    min_poly_pow = line[1]
+            for row in char_poly:
+                if row[0] == eig_value:
+                    r_a = row[1]
                     break
-            num_of_eag_muhlalim = r_g - r_a
+            if min_poly_pow < 0 or r_a <= 0:
+                print("problem in min_poly or char_poly, ", "(x -", eig_value, "I) power < 0")
+                exit()
 
-            while num_of_eag_muhlalim > 0:
-                # pow should be power from min_poly
-                A = (self.matrix - (eag_value * np.eye(self.matrix.shape[0])))
-                A_pow = np.linalg.matrix_power(A, min_poly_pow)
-                tmp, eag_muhlalim = np.linalg.eig(A_pow)
-                for vector in eag_muhlalim:
-                    if self.checkIfMuhlal(A, vector, min_poly_pow):
-                        self.findJordanChain(A, vector, min_poly_pow, base_list)
-                num_of_eag_muhlalim -= 1
-        P = numpy.stack(base_list, axis=1)
+            # finding eig muhlalim
+            # A = (matrix - eig_value*I)
+            A = (self.matrix - (eig_value * np.eye(self.matrix.shape[0])))
+            # A_pow = A^min_poly_pow
+            A_pow = np.linalg.matrix_power(A, int(min_poly_pow))
+
+            # compute A_pow null_space (no pre made function in numpy)
+            # null_space = all eig_vectors of eig_value 0
+            tmp, eig_muhlalim = np.linalg.eig(A_pow)
+            null_space = [vector for i, vector in enumerate(eig_muhlalim.T)
+                          if tmp[i] < 1e-12 and np.linalg.norm(vector) > 1e-12]
+
+            # find jordan chain long as possible for each vector in null_space
+            for vector in null_space:
+                jordan_chain_list.append(self.findJordanChain(A, vector, int(min_poly_pow)))
+
+            # sort jordan chains by size
+            jordan_chain_list.sort(key=len, reverse=True)
+            num_of_vectors = r_a
+
+            #check linear dependence between chains
+            for i, chain in enumerate(jordan_chain_list):
+                j = i+1
+                while j < len(jordan_chain_list):
+                    if j >= len(jordan_chain_list):
+                        break
+                    next_chain = jordan_chain_list[j]
+                    for vector in next_chain:
+                        # if one of the vectors in the chains is linear
+                        # dependence, remove it
+                        if not self.isLinearIndependence(chain+[vector]):
+                            jordan_chain_list.pop(j)
+                            j -= 1
+                            break
+                    j += 1
+
+                p_vector_list += reversed(chain)
+                num_of_vectors -= len(chain)
+                if num_of_vectors <= 0:
+                    break
+
+        # col_stack all jordan chains
+        P = np.stack(p_vector_list, axis=1)
         return P
 
-
-    def checkIfMuhlal(self, A, vector, min_poly_pow):
-        min_poly_pow -= 1
-        while min_poly_pow > 0:
-            A_pow_tmp = np.linalg.matrix_power(A, min_poly_pow)
-            if A_pow_tmp @ vector == 0:
-                return False
-            min_poly_pow -= 1
-        return True
-
-    def findJordanChain(self, A, vector, min_poly_pow, base_list):
-        min_poly_pow -= 1
-        base_list.append(vector)
+    # find jordan chains and add them to base_list
+    def findJordanChain(self, A, vector, min_poly_pow):
+        jordan_chain = [vector]
         for tmp_pow in range(1, min_poly_pow, 1):
-            A_pow_tmp = np.linalg.matrix_power(A, tmp_pow)
-            base_list.append(A_pow_tmp @ vector)
-        return True
+            A_pow_tmp = np.linalg.matrix_power(A, int(tmp_pow))
+            result = A_pow_tmp @ vector
+            # debug("jordan chain", [["A_pow_tmp",A_pow_tmp],["tmp_pow",tmp_pow],["vector",vector],["result",result]])
+            if result.any() != 0:
+                jordan_chain.append(result)
+            else:
+                break
+        return jordan_chain
+
+    def isLinearIndependence(self, vector_list):
+        A = np.stack(vector_list, axis=0)
+        rank = np.linalg.matrix_rank(A)
+        if rank == len(vector_list):
+            return True
+        else:
+            return False
 
     def getGeoMul(self):
         '''
@@ -167,7 +262,7 @@ class Matrix():
             dim_ker_2 = n - matrix_rank(mat_2)
             dim_ker_3 = n - matrix_rank(mat_3)
 
-            for block_size in range(1, row[1] + 1):
+            for block_size in range(1, int(row[1]) + 1):
                 number_of_blocks = 2 * dim_ker_2 - dim_ker_1 - dim_ker_3
 
                 # Updates the arguments for the next iteration
@@ -226,6 +321,7 @@ class Matrix():
         second_diagonal = np.array([[i, i + 1] for i in range(J.shape[0] - 1)])
         nil_matrix = np.zeros_like(J)
         nil_matrix[second_diagonal[:, 0], second_diagonal[:, 1]] = J[second_diagonal[:, 0], second_diagonal[:, 1]]
+        print("P in get SN = \n", P)
         P_inv = np.linalg.inv(P)
         self.S = P.dot(diag_matrix).dot(P_inv)
         self.N = P.dot(nil_matrix).dot(P_inv)
@@ -236,10 +332,39 @@ if __name__ == '__main__':
     '''
     Can do here some plays
     '''
-    numpy_matrix = np.ndarray([1,2,3])
+    # t = np.eye(3, k=0)
+    # t[0][0] = 2
+    # print(t,"\n")
+    # mat=Matrix(t)
+    # print(mat.getCharacteristicPolynomial(),"\n")
+    # print(mat.getEigenvectors())
+    arr = np.array([[-1,-1,0,0],[2,2,0,0],[4,2,2,1],[-2,-1,-1,0]])
+    #eig,_=la.eig(arr)
 
-    mat = Matrix(numpy_matrix)
-    J, P = mat() # will call "__call__"
+    print(arr, "\n")
+
+    mat = Matrix(arr)
+    print("char_poly -\n ", mat.getCharacteristicPolynomial(), "\n")
+    print("min_poly -\n ", mat.getMinimalPolynomial())
+    print("isDiagonal -\n " , mat.isDiagonal)
+    print("eig_vectors -\n ", mat.getEigenvectors())
+    P = mat.getPmejardent()
+    print("P =\n ", P)
+    J = mat.getJordanForm()
+    print("J =\n ", J)
+    # invP = np.linalg.inv(P)
+    # print("new J = \n", P@mat.matrix@invP)
+    N = mat.getNmatrix()
+    S = mat.getSmatrix()
+    print("S = \n ",S)
+    print("N = \n ",N)
+    print("new A = \n", S+N)
+
+
+    # print("\n",mat.eig_val)
+    # print(np.linalg.eig(arr))
+    # #J, P = mat() # will call "__call__"
+    # print(arr)
     pass
 
 
