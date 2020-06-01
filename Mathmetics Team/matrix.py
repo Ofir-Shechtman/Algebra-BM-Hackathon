@@ -148,7 +148,7 @@ class Matrix():
             # null_space = all eig_vectors of eig_value 0
             tmp, eig_muhlalim = np.linalg.eig(A_pow)
             null_space = [vector for i, vector in enumerate(eig_muhlalim.T)
-                          if tmp[i] < 1e-12 and np.linalg.norm(vector) > 1e-12]
+                          if abs(tmp[i]) < 1e-12 and np.linalg.norm(vector) > 1e-12]
 
             # find jordan chain long as possible for each vector in null_space
             for vector in null_space:
