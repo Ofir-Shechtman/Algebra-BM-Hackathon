@@ -128,11 +128,11 @@ class Matrix():
             r_a = -1
             for row in min_poly:
                 if row[0] == eig_value:
-                    min_poly_pow = row[1]
+                    min_poly_pow = int(row[1].real)
                     break
             for row in char_poly:
                 if row[0] == eig_value:
-                    r_a = row[1]
+                    r_a = int(row[1].real)
                     break
             if min_poly_pow < 0 or r_a <= 0:
                 print("problem in min_poly or char_poly, ", "(x -", eig_value, "I) power < 0")
@@ -142,7 +142,7 @@ class Matrix():
             # A = (matrix - eig_value*I)
             A = (self.matrix - (eig_value * np.eye(self.matrix.shape[0])))
             # A_pow = A^min_poly_pow
-            A_pow = np.linalg.matrix_power(A, int(min_poly_pow))
+            A_pow = np.linalg.matrix_power(A, min_poly_pow)
 
             # compute A_pow null_space (no pre made function in numpy)
             # null_space = all eig_vectors of eig_value 0
@@ -152,7 +152,7 @@ class Matrix():
 
             # find jordan chain long as possible for each vector in null_space
             for vector in null_space:
-                jordan_chain_list.append(self.findJordanChain(A, vector, int(min_poly_pow)))
+                jordan_chain_list.append(self.findJordanChain(A, vector, min_poly_pow))
 
             # sort jordan chains by size
             jordan_chain_list.sort(key=len, reverse=True)
@@ -187,9 +187,8 @@ class Matrix():
     def findJordanChain(self, A, vector, min_poly_pow):
         jordan_chain = [vector]
         for tmp_pow in range(1, min_poly_pow, 1):
-            A_pow_tmp = np.linalg.matrix_power(A, int(tmp_pow))
+            A_pow_tmp = np.linalg.matrix_power(A, tmp_pow)
             result = A_pow_tmp @ vector
-            # debug("jordan chain", [["A_pow_tmp",A_pow_tmp],["tmp_pow",tmp_pow],["vector",vector],["result",result]])
             if result.any() != 0:
                 jordan_chain.append(result)
             else:
