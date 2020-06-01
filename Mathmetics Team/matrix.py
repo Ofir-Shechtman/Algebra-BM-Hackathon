@@ -65,7 +65,7 @@ class Matrix():
                 cur_list=[cur_lin_factor[0] for cur_lin_factor in cur_lin_factors_tups]
                 poly_results.append(functools.reduce((lambda x, y: np.dot(x,y)),cur_list))
 
-            zero_index=[i for i in range(len(poly_results)) if numpy.count_nonzero(poly_results[i])==0]
+            zero_index = [i for i in range(len(poly_results)) if numpy.all(abs(poly_results[i]) <= 0.001)]
             # if there is a solution zero, get the result
             if len(zero_index)>0:
                 min_lin_factors=[lin_factor[1] for lin_factor in poly_lin_factors[zero_index[0]]]
@@ -331,14 +331,7 @@ if __name__ == '__main__':
     '''
     Can do here some plays
     '''
-    # t = np.eye(3, k=0)
-    # t[0][0] = 2
-    # print(t,"\n")
-    # mat=Matrix(t)
-    # print(mat.getCharacteristicPolynomial(),"\n")
-    # print(mat.getEigenvectors())
     arr = np.array([[-1,-1,0,0],[2,2,0,0],[4,2,2,1],[-2,-1,-1,0]])
-    #eig,_=la.eig(arr)
 
     print(arr, "\n")
 
