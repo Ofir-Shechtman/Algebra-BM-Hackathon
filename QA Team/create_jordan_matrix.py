@@ -15,7 +15,7 @@ def create_jordan_matrix(eigenValues, sizeOfBlocks):
     n=sum(sizeOfBlocks)
     k = 0
     l = 0
-    vector1 = np.zeros(n)
+    vector1 = np.zeros(n, dtype=complex)
     vector2 = np.zeros(n-1)
     
     for i in  range (len(sizeOfBlocks)):
@@ -37,7 +37,7 @@ def create_jordan_matrix(eigenValues, sizeOfBlocks):
     
 
     
-    jordan = np.zeros((n,n))
+    jordan = np.zeros((n,n), dtype=complex)
     k = 0
     l = 0
     for i in range(n):

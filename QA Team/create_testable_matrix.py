@@ -8,5 +8,6 @@ from numpy import matrix
 
 # %%
 def create_testable_matrix(p, j):
-    a = p.I @ j @ p
+    a = matrix(p).I @ j @ p
     return a
+

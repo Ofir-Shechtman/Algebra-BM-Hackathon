@@ -11,7 +11,7 @@ from test_char_polynom 					  import test_returned_characteristic_polynom
 from test_returned_jordan_chevallier 	  import test_returned_jordan_chevallier
 from test_returned_P_Mejardenet_matrix    import test_returned_P_Mejardenet_matrix
 
-#from matrix import # Matrix for testing, when it exists
+from matrix import # Mathmatics Matrix - put files in the right location
 
 def run_test(eigen, blocks):	
 	J, size = create_jordan_matrix(eigen, blocks)
@@ -52,9 +52,9 @@ def random_realNumbers_tests(num_tests):
 		eigen = []
 		blocks = []
 		for b in range(blocks):
-			# eigenvalue to be from range -10 to 10, and jordan block to be in size 1-8
+			# eigenvalue to be from range -10 to 10, and jordan block to be in size 1-5
 			eigen.append(random.randint(-10,10)
-			blocks.append(random.randint(1,8))
+			blocks.append(random.randint(1,5))
 		run_test(eigen, blocks)
 
 
@@ -69,9 +69,40 @@ blocks = [1, 2, 1]
 '''
 1 1
 0 1
-    0 1
+	0 1
 	0 0
 	    3
+'''
+run_test(eigen, blocks)
+
+eigen = [1+1j, 1-1j, 3]
+blocks = [2, 2, 3]
+# jordan matrix that looks like this:
+'''
+1+i 1
+0 1+i
+	  1-i 1
+	  0   1-i
+			  3 1
+			  0 3 1
+			  0 0 3
+'''
+run_test(eigen, blocks)
+
+eigen = [1, 1, 1, 1]
+blocks = [2, 3, 4, 1]
+# jordan matrix that looks like this:
+'''
+1 1
+0 1 0
+    1 1
+    0 1 1
+    0 0 1 0
+          1 1
+          0 1 1
+          0 0 1 1
+          0 0 0 1 0
+                  1
 '''
 run_test(eigen, blocks)
 
