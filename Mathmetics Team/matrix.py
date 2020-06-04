@@ -229,7 +229,8 @@ class Matrix():
                 dim_ker_3 = n - matrix_rank(mat_3)
 
                 [result.append((ev, block_size)) for _ in range(number_of_blocks)]
-
+        #here add a sort first by block size and then by eig size
+        result.sort(reverse=True)
         return Matrix.combine_jordan_blocks(result, n)
 
     def getSmatrix(self):
@@ -279,7 +280,9 @@ class Matrix():
 
 if __name__ == '__main__':
 
-    arr = np.array([[-1,-1,0,0],[2,2,0,0],[4,2,2,1],[-2,-1,-1,0]])
+    #arr = np.array([[1,0,-4,4],[0,2,0,0],[0,1,1,0],[0,1,0,1]])
+    #arr = np.array([[2, 0, 0], [0, 2, 0], [-1, 1, 2]])
+    arr = np.array([[7, 1,2,2],[1,4,-1,-1],[-2,1,5,-1],[1,1,2,8]])
     print(arr, "\n")
     mat = Matrix(arr)
     print("char_poly -\n ", mat.getCharacteristicPolynomial(), "\n")
@@ -298,3 +301,30 @@ if __name__ == '__main__':
     print("S = \n ", S)
     print("N = \n ", N)
     print("new A = \n", S + N)
+
+    ##Functions
+    #getCharacteristicPolynomial    V
+    #getMinimalPolynomial           V
+    #isDiagonalizableMatrix         V
+    #getEigenValues                 V
+    #getEigenvectors                V
+    #def getPmejardent              V
+    #def findJordanChain            V - used in getPmejardent
+    #def isLinearIndependence       V - used in getPmejardent
+    #def getJordanBlocks            V - used in getPmejardent
+    #def combine_jordan_blocks      V - used in getPmejardent
+    #def getJordanForm              V
+    #def getSmatrix                 V
+    #def getNmatrix                 V
+    #def getSNMatrices              V
+
+    ##Fields
+    #self.matrix
+    #self.S
+    #self.N
+    #self.size
+    #self.eig_val
+    #self.charPoly
+    #self.minPoly
+    #self.isDiagonal
+    #self.eigan_vectors
