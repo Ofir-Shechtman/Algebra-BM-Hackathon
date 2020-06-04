@@ -301,30 +301,3 @@ if __name__ == '__main__':
     print("S = \n ", S)
     print("N = \n ", N)
     print("new A = \n", S + N)
-
-    ##Functions
-    #getCharacteristicPolynomial    V
-    #getMinimalPolynomial           V
-    #isDiagonalizableMatrix         V
-    #getEigenValues                 V
-    #getEigenvectors                V
-    #def getPmejardent              V
-    #def findJordanChain            V - used in getPmejardent
-    #def isLinearIndependence       V - used in getPmejardent
-    #def getJordanBlocks            V - used in getPmejardent
-    #def combine_jordan_blocks      V - used in getPmejardent
-    #def getJordanForm              V
-    #def getSmatrix                 V
-    #def getNmatrix                 V
-    #def getSNMatrices              V
-
-    ##Fields
-    #self.matrix
-    #self.S
-    #self.N
-    #self.size
-    #self.eig_val
-    #self.charPoly
-    #self.minPoly
-    #self.isDiagonal
-    #self.eigan_vectors
