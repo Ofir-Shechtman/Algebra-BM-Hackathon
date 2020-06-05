@@ -12,8 +12,6 @@ class Matrix():
         :param matrix: ndarray matrix (C)
         '''
         self.matrix = matrix
-        self.S = None
-        self.N = None
         self.matrix = matrix  # the matrix: 2d np.ndarray
         self.size = matrix.shape[0]  # size of axis: int
         # self.eig_val,_ = np.linalg.eig(self.matrix) # eigen values with duplications : np.ndarray
@@ -22,6 +20,12 @@ class Matrix():
         self.minPoly = self.getMinimalPolynomial()  # the minimal Polynom in our presentation : 2d np.ndarray
         self.isDiagonal = self.isDiagonalizableMatrix()  # boolean is diagonalizable matrix
         self.eigan_vectors = self.getEigenvectors()  # dictionary- eigenvals as keys,eigenvectors of each eigenval as ndarray *columns*
+        self.S = None
+        self.N = None
+        self.P = self.getPmejardent()
+        self.J = self.getJordanForm()
+        self.S = self.getSmatrix()
+        self.N = self.getNmatrix()
 
     def __call__(self, *args, **kwargs):
         '''
@@ -84,7 +88,7 @@ class Matrix():
 
     def getEigenValues(self):
         eig_val, _ = np.linalg.eig(self.matrix)
-        return (eig_val.round(decimals=5))
+        return (eig_val.round(decimals=3))
 
     def getEigenvectors(self):
         '''
@@ -170,7 +174,7 @@ class Matrix():
 
     @staticmethod
     def combine_jordan_blocks(blocks, size):
-        res = np.zeros((size, size))
+        res = np.zeros((size, size), dtype=complex)
         i = 0
         for block in blocks:
             for j in range(block[1] - 1):
@@ -219,7 +223,7 @@ class Matrix():
             dim_ker_2 = n - matrix_rank(mat_2)
             dim_ker_3 = n - matrix_rank(mat_3)
 
-            for block_size in range(1, int(row[1]) + 1):
+            for block_size in range(1, int(np.real(row[1])) + 1):
                 number_of_blocks = 2 * dim_ker_2 - dim_ker_1 - dim_ker_3
 
                 # Updates the arguments for the next iteration
@@ -267,10 +271,10 @@ class Matrix():
 
         J, P = self.getJordanForm(), self.getPmejardent()
         diag_index = np.array([[i, i] for i in range(J.shape[0])])
-        diag_matrix = np.zeros_like(J)
+        diag_matrix = np.zeros_like(J, dtype=complex)
         diag_matrix[diag_index[:, 0], diag_index[:, 1]] = J[diag_index[:, 0], diag_index[:, 1]]
         second_diagonal = np.array([[i, i + 1] for i in range(J.shape[0] - 1)])
-        nil_matrix = np.zeros_like(J)
+        nil_matrix = np.zeros_like(J, dtype=complex)
         nil_matrix[second_diagonal[:, 0], second_diagonal[:, 1]] = J[second_diagonal[:, 0], second_diagonal[:, 1]]
         P_inv = np.linalg.inv(P)
         self.S = P.dot(diag_matrix).dot(P_inv)
@@ -282,25 +286,31 @@ if __name__ == '__main__':
 
     #arr = np.array([[1,0,-4,4],[0,2,0,0],[0,1,1,0],[0,1,0,1]])
     #arr = np.array([[2, 0, 0], [0, 2, 0], [-1, 1, 2]])
-    arr = np.array([[7, 1,2,2],[1,4,-1,-1],[-2,1,5,-1],[1,1,2,8]])
+    arr = np.array([[7,1,2,2],[1,4,-1,-1],[-2,1,5,-1],[1,1,2,8]])
+    #arr = np.array([[0,-1],[1,0]])
+    #arr = np.array([[1,1],[0,1]])
     print(arr, "\n")
     mat = Matrix(arr)
-    print("char_poly -\n ", mat.getCharacteristicPolynomial(), "\n")
-    print("min_poly -\n ", mat.getMinimalPolynomial())
+    #print("char_poly -\n ", mat.getCharacteristicPolynomial(), "\n")
+    print("char_poly -\n ", mat.charPoly, "\n")
+    #print("min_poly -\n ", mat.getMinimalPolynomial())
+    print("min_poly -\n ", mat.minPoly)
     print("isDiagonal -\n ", mat.isDiagonal)
-    print("eig_vectors -\n ", mat.getEigenvectors())
-    P = mat.getPmejardent()
+    #print("eig_vectors -\n ", mat.getEigenvectors())
+    print("eig_vectors -\n ", mat.eigan_vectors)
+    #P = mat.getPmejardent()
+    P = mat.P
     P.round(decimals=10)
     print("P =\n ", P)
-    J = mat.getJordanForm()
+    #J = mat.getJordanForm()
+    J = mat.J
     print("J =\n ", J)
     invP = np.linalg.inv(P)
     print("new J = \n", (invP @ mat.matrix @ P).round(decimals=5))
-    N = mat.getNmatrix()
-    S = mat.getSmatrix()
+    #N = mat.getNmatrix()
+    N = mat.N
+    #S = mat.getSmatrix()
+    S = mat.S
     print("S = \n ", S)
     print("N = \n ", N)
     print("new A = \n", S + N)
-
-
-
