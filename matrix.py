@@ -286,9 +286,10 @@ if __name__ == '__main__':
 
     #arr = np.array([[1,0,-4,4],[0,2,0,0],[0,1,1,0],[0,1,0,1]])
     #arr = np.array([[2, 0, 0], [0, 2, 0], [-1, 1, 2]])
-    arr = np.array([[7,1,2,2],[1,4,-1,-1],[-2,1,5,-1],[1,1,2,8]])
+    #arr = np.array([[7,1,2,2],[1,4,-1,-1],[-2,1,5,-1],[1,1,2,8]])
     #arr = np.array([[0,-1],[1,0]])
     #arr = np.array([[1,1],[0,1]])
+    arr = np.array([[46,93],[71,89]])
     print(arr, "\n")
     mat = Matrix(arr)
     #print("char_poly -\n ", mat.getCharacteristicPolynomial(), "\n")
