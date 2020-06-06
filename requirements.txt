@@ -1,0 +1,4 @@
+ipywidgets==7.5.*
+numpy==1.18.*
+scipy==1.4.*
+array_to_latex

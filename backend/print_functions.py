@@ -15,6 +15,8 @@ def print_matrix(np_array_matrix):
     Prints the input matrix.
     """
     np_array_matrix = np_array_matrix.round(3)
+    if np.isreal(np_array_matrix).all():
+        np_array_matrix = np_array_matrix.real
     assert len(
         np_array_matrix.shape) == 2, "Are you rying to print multi dimmensional matrix?"
     latex_code = a2l.to_ltx(
@@ -72,6 +74,9 @@ def get_extended_polynomial_latex(a):
 def get_packed_polynomial_latex(a):
     str = ""
     for row in a:
-        # str+= F"(X-{row[0]})^\{ {int(row[1])} \}  "
-        str += "(x - {0})^{1}".format(row[0], "{%d}" % int(np.real(row[1])))
-    return ("$"+str+"$")
+        eig_str = f"{float(-row[0].real):+.2f}" if np.isreal(row[0]
+                                                             ) else -row[0]
+        pwr_str = f"^{{{int(np.real(row[1]))}}}" if int(
+            np.real(row[1])) != 1 else ''
+        str += f"(x {eig_str}){pwr_str}"
+    return (f"${str}$")
