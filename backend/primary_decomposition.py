@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.polynomial.polynomial import Polynomial
 import functools
-from backend import Matrix
+from backend import Matrix, print_matrix, polynomial_to_latex
 from dataclasses import dataclass
 
 
@@ -13,8 +13,6 @@ def assign_matrix_to_polynom(p: Polynomial, A: np.ndarray):
             t = t @ A
         res += t * v
     return res
-
-
 
 
 def gcd(a: Polynomial, b: Polynomial):
@@ -51,16 +49,24 @@ class Projection:
         return self.q * self.h
 
 
-A = np.array([[-2, 1, 0, 0], [0, -2, 0, 0], [0, 0, -3, 1], [0, 0, 0, -3]], np.float64)
-m = Matrix(A)
-f = list()
-for root, dup in m.minPoly:
-    poly = np.poly([root] * int(dup))
-    f.append(Polynomial(np.flip(poly)))
-mx = functools.reduce(lambda a, b: a * b, f)
-q_list = list(map(lambda fi: mx // fi, f))
-g, h_list = multy_gcd(*q_list)
-h_list = list(map(lambda x: x // g, h_list))
-projections = [Projection(root[0], q, h) for root, q, h in zip(m.minPoly, q_list, h_list)]
-for p in projections:
-    print(assign_matrix_to_polynom(p.P,A))
+def primary_decomposition(A: np.ndarray):
+    m = Matrix(A)
+    f = list()
+    for root, dup in m.minPoly:
+        poly = np.poly([root] * int(dup))
+        f.append(Polynomial(np.flip(poly)))
+    mx = functools.reduce(lambda a, b: a * b, f)
+    q_list = list(map(lambda fi: mx // fi, f))
+    g, h_list = multy_gcd(*q_list)
+    h_list = list(map(lambda x: x // g, h_list))
+    projections = [Projection(root[0], q, h) for root, q, h in zip(m.minPoly, q_list, h_list)]
+    return projections
+
+
+if __name__ == '__main__':
+    A = np.array([[-2, 1, 0, 0], [0, -2, 0, 0], [0, 0, -3, 1], [0, 0, 0, -3]], np.float64)
+    projections = primary_decomposition(A)
+    for p in projections:
+        print('q(x)= ', polynomial_to_latex(p.q))
+        print('h(x)= ', polynomial_to_latex(p.h))
+        print('q(A)h(A)= \n', print_matrix(assign_matrix_to_polynom(p.P, A)), end='\n\n')
