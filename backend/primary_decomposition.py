@@ -3,6 +3,8 @@ from numpy.polynomial.polynomial import Polynomial
 import functools
 from backend import Matrix, print_matrix, polynomial_to_latex
 from dataclasses import dataclass
+from IPython.display import Latex
+from backend.print_functions import *
 
 
 def assign_matrix_to_polynom(p: Polynomial, A: np.ndarray):
@@ -31,7 +33,7 @@ def multy_gcd(*vars: Polynomial):
     rets = [x, y]
     if len(vars) == 2:
         return g, rets
-    for var in vars[:2]:
+    for var in vars[2:]:
         g, x, y = gcd(g, var)
         rets = list(map(lambda v: v * y, rets))
         rets.append(x)
@@ -49,8 +51,7 @@ class Projection:
         return self.q * self.h
 
 
-def primary_decomposition(A: np.ndarray):
-    m = Matrix(A)
+def primary_decomposition(m: Matrix):
     f = list()
     for root, dup in m.minPoly:
         poly = np.poly([root] * int(dup))
@@ -62,11 +63,24 @@ def primary_decomposition(A: np.ndarray):
     projections = [Projection(root[0], q, h) for root, q, h in zip(m.minPoly, q_list, h_list)]
     return projections
 
+def print_projections(projections):
+    for p in projections:
+        print('q(x)= ', p.q)
+        print('h(x)= ', p.h)
+        print('q(x)h(x)= ', p.q*p.h)
+        print('q(A)h(A)= \n', assign_matrix_to_polynom(p.P, A), end='\n\n')
+
+def projections_to_latex(m: Matrix):
+    projections = primary_decomposition(m)
+    projections_latex = [Latex("\n\nPrimary decomposition:")]
+    for p in projections:
+        projections_latex.append(Latex(f'q(x)= {polynomial_to_latex(p.q)}'))
+        projections_latex.append(Latex(f'h(x)=  {polynomial_to_latex(p.h)}'))
+        projections_latex.append(Latex(f'$$ P(A) = q(A)h(A)= {print_matrix(assign_matrix_to_polynom(p.P, m.matrix))}$$'))
+    return projections_latex
+
 
 if __name__ == '__main__':
-    A = np.array([[-2, 1, 0, 0], [0, -2, 0, 0], [0, 0, -3, 1], [0, 0, 0, -3]], np.float64)
-    projections = primary_decomposition(A)
-    for p in projections:
-        print('q(x)= ', polynomial_to_latex(p.q))
-        print('h(x)= ', polynomial_to_latex(p.h))
-        print('q(A)h(A)= \n', print_matrix(assign_matrix_to_polynom(p.P, A)), end='\n\n')
+    A = np.array([[-2, 1, 0, 0], [0, -2, 0, 0], [0, 0, -3, 1], [0, 0, 0, -4]], np.float64)
+    projections = primary_decomposition(Matrix(A))
+    print_projections(projections)

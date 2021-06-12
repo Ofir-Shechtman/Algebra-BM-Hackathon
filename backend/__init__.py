@@ -2,8 +2,9 @@ import ipywidgets as widgets
 import numpy as np
 from ipywidgets import GridspecLayout, Layout
 from IPython.display import display, Latex, HTML, Markdown
-from .print_functions import *
-from .matrix import Matrix
+from backend.print_functions import *
+from backend.matrix import Matrix
+from backend.primary_decomposition import projections_to_latex
 
 gs = None
 
@@ -62,7 +63,8 @@ def display_result(b):
                 Latex(f'Jordan–Chevalley decomposition:'),
                 Latex(f'$$S = {print_matrix(m.S)}$$'),
                 Latex(f'$$N = {print_matrix(m.N)}$$'),
-                )
+                *projections_to_latex(m)
+        )
 
     b.description = 'recalculate'
     return

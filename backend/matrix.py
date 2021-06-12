@@ -27,6 +27,7 @@ class Matrix():
         self.S = self.getSmatrix()
         self.N = self.getNmatrix()
 
+
     def __call__(self, *args, **kwargs):
         '''
 
